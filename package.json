@@ -1,0 +1,14 @@
+{
+  "name": "aubergetombouktou",
+  "version": "1.0.0",
+  "description": "a web site selling a booking for room host",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon ./server.js"
+  },
+  "author": "Anthony-Perriolat",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
