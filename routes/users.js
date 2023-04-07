@@ -1,18 +1,19 @@
 const router = require('express').Router()
 
-const staffCrlt = require('../controllers/stuff')
+const userCrlt = require('../controllers/users')
 const auth = require('../middleware/auth')
 
-router.post('/', auth, staffCrlt.createThing)
+router.get('/:id', auth, userCrlt.getMyUser)
+router.get('/', auth, userCrlt.getAllUsers)
+router.post('/login', userCrlt.login)
+router.post('/signUp', userCrlt.signUpUser)
+router.put('/:id', auth, userCrlt.updateUser)
 
-router.put('/:id', auth, staffCrlt.updateThing)
 
-router.delete('/:id', auth, staffCrlt.deleteThing)
+// router.delete('/:id', auth, userCrlt.deleteThing)
 
-router.get('/:id', auth, staffCrlt.getOneThing)
 
-router.get('/', auth, staffCrlt.getAllThings)
 //        methode ('route', middleware, controllers)
-// router.get('/', auth, , staffCrlt.getAllThings)
+// router.get('/', auth, , userCrlt.getAllThings)
 
 module.exports = router

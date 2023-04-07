@@ -12,10 +12,25 @@ app.use((req, res, next) => {
     next();
 });
 
+const usersRoutes = require('./routes/users')
+const bookingsRoutes = require('./routes/bookings')
+const categoriesArticleRoutes = require('./routes/categoriesArticle')
+const roomsRoutes = require('./routes/rooms')
+const articlesRoutes = require('./routes/articles')
+
+
 // const userRoutes = require('./routes/user')
 // app.use('/api/auth', userRoutes)
+app.use('/api/users', usersRoutes)
+app.use('/api/bookings', bookingsRoutes)
+app.use('/api/categoriesArticle', categoriesArticleRoutes)
+app.use('/api/rooms', roomsRoutes)
+app.use('/api/articles', articlesRoutes)
 
 app.use('/images', express.static(path.join(__dirname, 'images')))
 
+app.get('*', (req, res) => {
+    res.status(404).send("Désolé, cette page n'existe pas!");
+  });
 
 module.exports = app
