@@ -2,12 +2,13 @@ const router = require('express').Router()
 
 const roomCrlt = require('../controllers/rooms')
 const auth = require('../middleware/auth')
+const permission = require('../middleware/permission')
 
 router.get('/:id', roomCrlt.getRoomById)
 router.get('/', roomCrlt.getAllRooms)
-router.post('/', auth, roomCrlt.createRoom)
-router.put('/:id', auth, roomCrlt.updateRoom)
-router.delete('/:id', auth, roomCrlt.deleteRoom)
+router.post('/', auth, permission, roomCrlt.createRoom)
+router.put('/:id', auth, permission, roomCrlt.updateRoom)
+router.delete('/:id', auth, permission, roomCrlt.deleteRoom)
 
 
 //        methode ('route', middleware, controllers)

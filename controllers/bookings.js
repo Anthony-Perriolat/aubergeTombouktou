@@ -8,8 +8,19 @@ exports.getBookingById = async (req, res, next) => {
         const result = await prisma.booking.findUnique({
             where: {
                 id: Number(id),
+                idUser: req.auth.userId
             },
         })
+        res.status(200).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        console.error(error);
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+}
+exports.getMyBookings = async (req, res, next) => {
+    try {
+        const result = await prisma.booking.findMany({ where: { idUser: req.auth.userId } })
         res.status(200).json(result);
     } catch (error) {
         // gestion de l'erreur
@@ -45,7 +56,7 @@ exports.updateBooking = async (req, res, next) => {
     const dataToUpdate = req.body.data
     try {
         const result = await prisma.booking.update({
-            where: { id: Number(id) },
+            where: { id: Number(id), idUser: req.auth.userId },
             data: dataToUpdate,
         })
         res.status(201).json(result);
@@ -61,6 +72,7 @@ exports.deleteBooking = async (req, res, next) => {
         const result = await prisma.booking.delete({
             where: {
                 id: Number(id),
+                idUser: req.auth.userId
             },
         })
         res.status(201).json(result)
