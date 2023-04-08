@@ -1,9 +1,20 @@
 const express = require('express')
 const path = require('path')
+// const { PrismaClient } = require('@prisma/client');
+// const prisma = new PrismaClient();
 
 const app = express()
 
 app.use(express.json())
+
+
+// // Middleware to add the Prisma client to the request object
+// app.use(async (req, res, next) => {
+//   req.context = {
+//     prisma,
+//   };
+//   next();
+// });
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

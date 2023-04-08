@@ -1,0 +1,9 @@
+This project use Prisma ORM 
+
+https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-node-mysql
+for create a schema use this link : 
+https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+
+for update schemas DB use this : npx prisma migrate dev --name xxxx
+for fix a schema use this command line : prisma format
+for access into function to prisma use : req.context.prisma 
