@@ -17,6 +17,7 @@ model User {
   email      String    @unique
   phone      String
   nationaliy String
+  permission String   @default("customer")
   password   String
   bookings   Booking[]
 }

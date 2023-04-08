@@ -1,42 +1,72 @@
-// const prismaMiddleware = require('../middleware/prismaMiddleware')
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-exports.getArticleById = (req, res, next) => {
-    return res.json({ message: 'getArticleById' })
-}
-exports.getAllArticles = async (req, res, next) => {
+exports.getArticleById = async (req, res, next) => {
+    const id = req.params.id
     try {
-        const result = await req.context.prisma.article.findMany()
+        const result = await prisma.article.findUnique({
+            where: {
+                id: Number(id),
+            },
+        })
         res.status(200).json(result);
-      } catch (error) {
+    } catch (error) {
         // gestion de l'erreur
         console.error(error);
         res.status(500).json({ error: 'Une erreur est survenue.' });
-      }
+    }
+}
+exports.getAllArticles = async (req, res, next) => {
+    try {
+        const result = await prisma.article.findMany()
+        res.status(200).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        console.error(error);
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+
 }
 exports.createArticle = async (req, res, next) => {
-    // try {
-    //     console.log(req.context.prisma)
-    //     // logique de votre contrôleur
-    //     const result = await prismaMiddleware.prismaMiddleware.article.create({
-    //         data: {
-    //             title: 'Alice',
-    //             description: 'alice@prisma.io',
-    //             content: "<h1>coucou</h1>",
-    //         },
-    //     })
-    //     res.status(200).json(result);
-    //   } catch (error) {
-    //     // gestion de l'erreur
-    //     console.error(error);
-    //     res.status(500).json({ error: 'Une erreur est survenue.' });
-    //   }
-    return res.json({message: "message"})
+    const dataToCreate = req.body.data
+    try {
+        const result = await prisma.categorieArticle.create({
+            data: dataToCreate,
+        })
+        res.status(201).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        console.error(error);
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
 }
-exports.updateArticle = (req, res, next) => {
-    return res.json({ message: 'updateArticle' })
-
+exports.updateArticle = async (req, res, next) => {
+    const id = req.params.id
+    const dataToUpdate = req.body.data
+    try {
+        const result = await prisma.categorieArticle.update({
+            where: { id: Number(id) },
+            data: dataToUpdate,
+        })
+        res.status(201).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        console.error(error);
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
 }
-exports.deleteArticle = (req, res, next) => {
-    return res.json({ message: 'deleteArticle' })
-
+exports.deleteArticle = async (req, res, next) => {
+    const { id } = req.params
+    try {
+        const result = await prisma.categorieArticle.delete({
+            where: {
+                id: Number(id),
+            },
+        })
+        res.status(201).json(result)
+    } catch {
+        // gestion de l'erreur
+        console.error(error);
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
 }
