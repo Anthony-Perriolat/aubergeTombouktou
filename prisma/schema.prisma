@@ -16,8 +16,8 @@ model User {
   firstName  String
   email      String    @unique
   phone      String
-  nationaliy String
-  permission String   @default("customer")
+  nationality String
+  permission String    @default("customer")
   password   String
   bookings   Booking[]
 }
@@ -44,20 +44,30 @@ model ImageArticle {
 }
 
 model CategorieArticle {
-  id          Int     @id @default(autoincrement())
-  title       String  @unique @db.VarChar(128)
-  description String @db.VarChar(255)
-  articles Article[]
+  id          Int       @id @default(autoincrement())
+  title       String    @unique @db.VarChar(128)
+  description String    @db.VarChar(255)
+  articles    Article[]
 }
 
 model Room {
-  id                  Int       @id @default(autoincrement())
-  name                String    @unique @db.VarChar(128)
-  description         String?   @db.VarChar(255)
-  personNumberPerRoom Int?      @default(1)
+  id                  Int         @id @default(autoincrement())
+  name                String      @unique @db.VarChar(128)
+  description         String?     @db.VarChar(255)
+  personNumberPerRoom Int?        @default(1)
   price               Float
-  bed                 Int?      @default(1)
+  bed                 Int?        @default(1)
   Booking             Booking[]
+  ImageRoom           ImageRoom[]
+}
+
+model ImageRoom {
+  id          Int     @id @default(autoincrement())
+  title       String  @unique @db.VarChar(128)
+  description String? @db.VarChar(255)
+  urlStorage  String
+  room        Room?   @relation(fields: [roomId], references: [id])
+  roomId      Int?
 }
 
 model Booking {
@@ -67,6 +77,7 @@ model Booking {
   email               String
   dateCheckIn         DateTime
   dateCheckOut        DateTime
+  duration            Int
   personNumber        Int       @default(0)
   comment             String?
   user                User      @relation(fields: [userId], references: [id])

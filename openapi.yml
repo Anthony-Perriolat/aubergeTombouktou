@@ -1,0 +1,403 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - url: http://localhost:3000/api
+info:
+  version: "1.0.0"
+  title: home-iot-api
+  description: The API for the EatBacon IOT project
+
+paths:
+  /users/myUser:
+    get:
+      summary: Récupère les informations de l'utilisateur connecté
+      description: Cette opération permet de récupérer les informations de l'utilisateur actuellement connecté.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: L'identifiant de l'utilisateur.
+                  username:
+                    type: string
+                    description: Le nom d'utilisateur de l'utilisateur.
+                  email:
+                    type: string
+                    description: L'adresse e-mail de l'utilisateur.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: La date de création du compte de l'utilisateur.
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: La date de dernière mise à jour des informations de l'utilisateur.
+        '401':
+          description: Non authentifié. L'utilisateur doit être authentifié pour accéder à cette ressource.
+        '500':
+          description: Erreur interne du serveur. Une erreur s'est produite lors de la mise à jour de l'utilisateur.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Le message d'erreur.
+    put:
+      summary: Mettre à jour l'utilisateur actuel
+      description: Permet de mettre à jour les informations d'un utilisateur authentifié, y compris l'email. Si un nouvel email est fourni, il est validé avec une fonction de validation d'email personnalisée. Si l'email est valide et mis à jour, une notification par e-mail est envoyée.
+      tags:
+        - Utilisateurs
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: Les informations de l'utilisateur à mettre à jour.
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      description: L'email de l'utilisateur.
+                  required:
+                    - email
+                auth:
+                  type: object
+                  
+                required:
+                  - data
+        required: true
+      responses:
+        '201':
+          description: Utilisateur mis à jour avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: L'identifiant de l'utilisateur.
+                  firstName:
+                    type: string
+                    description: Le prénom de l'utilisateur.
+                  lastName:
+                    type: string
+                    description: Le nom de famille de l'utilisateur.
+                  email:
+                    type: string
+                    format: email
+                    description: L'email de l'utilisateur.
+        '400':
+          description: Mauvaise requête. L'email fourni est invalide.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Le message d'erreur.
+        '401':
+          description: Non authentifié. L'utilisateur doit être authentifié pour accéder à cette ressource.
+        '500':
+          description: Erreur interne du serveur. Une erreur s'est produite lors de la mise à jour de l'utilisateur.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Le message d'erreur.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant unique de l'utilisateur.
+        lastName:
+          type: string
+          description: Nom de famille de l'utilisateur.
+        firstName:
+          type: string
+          description: Prénom de l'utilisateur.
+        email:
+          type: string
+          format: email
+          description: Adresse email de l'utilisateur.
+        phone:
+          type: string
+          description: Numéro de téléphone de l'utilisateur.
+        nationality:
+          type: string
+          description: Nationalité de l'utilisateur.
+        permission:
+          type: string
+          enum:
+            - customer
+            - admin
+          description: Autorisation de l'utilisateur.
+        password:
+          type: string
+          description: Mot de passe de l'utilisateur.
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+          description: Liste des réservations de l'utilisateur.
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant unique de l'article.
+        title:
+          type: string
+          description: Titre de l'article.
+        description:
+          type: string
+          description: Description de l'article.
+        content:
+          type: string
+          description: Contenu de l'article.
+        date_publish:
+          type: string
+          format: date-time
+          description: Date de publication de l'article.
+        date_update:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour de l'article.
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageArticle'
+          description: Liste des images associées à l'article.
+        categorie:
+          $ref: '#/components/schemas/CategorieArticle'
+          description: Catégorie de l'article.
+        categorieId:
+          type: integer
+          format: int32
+          description: Identifiant de la catégorie de l'article.
+
+    ImageArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant unique de l'image de l'article.
+        title:
+          type: string
+          description: Titre de l'image de l'article.
+        description:
+          type: string
+          description: Description de l'image de l'article.
+        urlStorage:
+          type: string
+          description: URL de stockage de l'image de l'article.
+        article:
+          $ref: '#/components/schemas/Article'
+          description: Article associé à l'image.
+        articleId:
+          type: integer
+          format: int32
+          description: Identifiant de l'article associé à l'image.
+
+    CategorieArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant unique de la catégorie d'article.
+        title:
+          type: string
+          description: Titre de la catégorie d'article.
+        description:
+          type: string
+          description: Description de la catégorie d'article.
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+          description: Liste des articles de la catégorie.
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la réservation
+        uuid:
+          type: string
+          description: UUID unique de la réservation
+        phone:
+          type: string
+          description: Numéro de téléphone de la personne effectuant la réservation
+        email:
+          type: string
+          description: Adresse e-mail de la personne effectuant la réservation
+        dateCheckIn:
+          type: string
+          format: date-time
+          description: Date de début de la réservation
+        dateCheckOut:
+          type: string
+          format: date-time
+          description: Date de fin de la réservation
+        duration:
+          type: integer
+          description: Durée de la réservation en jours
+        personNumber:
+          type: integer
+          description: Nombre de personnes pour la réservation
+        comment:
+          type: string
+          nullable: true
+          description: Commentaires supplémentaires pour la réservation
+        user:
+          $ref: '#/components/schemas/User'
+          description: Utilisateur associé à la réservation
+        userId:
+          type: integer
+          description: Identifiant de l'utilisateur associé à la réservation
+        room:
+          $ref: '#/components/schemas/Room'
+          description: Chambre associée à la réservation
+        roomId:
+          type: integer
+          description: Identifiant de la chambre associée à la réservation
+        hasPaid:
+          type: boolean
+          description: Indique si la réservation a été payée
+        price:
+          type: number
+          description: Prix total de la réservation
+        stripePaymentIntent:
+          type: string
+          nullable: true
+          description: Identifiant du paiement Stripe associé à la réservation
+        createdOn:
+          type: string
+          format: date-time
+          description: Date de création de la réservation
+        updatedOn:
+          type: string
+          format: date-time
+          description: Date de dernière mise à jour de la réservation
+        paymentDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date du paiement de la réservation
+      required:
+        - id
+        - uuid
+        - phone
+        - email
+        - dateCheckIn
+        - dateCheckOut
+        - duration
+        - userId
+        - roomId
+        - hasPaid
+        - price
+        - createdOn
+        - updatedOn
+        
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de la chambre
+        name:
+          type: string
+          description: Nom unique de la chambre
+        description:
+          type: string
+          nullable: true
+          description: Description de la chambre
+        personNumberPerRoom:
+          type: integer
+          nullable: true
+          description: Nombre de personnes autorisées par chambre
+        price:
+          type: number
+          description: Prix de la chambre
+        bed:
+          type: integer
+          nullable: true
+          description: Nombre de lits dans la chambre
+        Booking:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+          description: Liste des réservations pour cette chambre
+        ImageRoom:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageRoom'
+          description: Liste des images pour cette chambre
+      required:
+        - id
+        - name
+        - price
+    ImageRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant unique de l'image
+        title:
+          type: string
+          description: Titre unique de l'image
+        description:
+          type: string
+          nullable: true
+          description: Description de l'image
+        urlStorage:
+          type: string
+          description: URL de stockage de l'image
+        room:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              description: Identifiant unique de la chambre associée
+          description: Chambre associée à cette image
+        roomId:
+          type: integer
+          nullable: true
+          description: Identifiant unique de la chambre associée
+      required:
+        - id
+        - title
+        - urlStorage

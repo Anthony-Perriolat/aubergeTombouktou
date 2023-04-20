@@ -1,8 +1,10 @@
-const http = require('http');
-const app = require('./app');
-require('dotenv').config()
+import * as http from 'http';
+import app from './app';
+import * as dotenv from 'dotenv';
 
-const normalizePort = val => {
+dotenv.config();
+
+const normalizePort = (val: string): number | string | boolean => {
   const port = parseInt(val, 10);
 
   if (isNaN(port)) {
@@ -13,10 +15,11 @@ const normalizePort = val => {
   }
   return false;
 };
-const port = normalizePort(process.env.PORT || '3000');
+
+const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-const errorHandler = error => {
+const errorHandler = (error: NodeJS.ErrnoException): void => {
   if (error.syscall !== 'listen') {
     throw error;
   }

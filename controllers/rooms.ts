@@ -1,0 +1,197 @@
+import fs from 'fs';
+import { Request, Response, NextFunction } from 'express';
+import prisma from '../client';
+
+
+export const getRoomById = async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    try {
+        const result = await prisma.room.findUnique({
+            where: {
+                id: Number(id),
+            },
+            include: {
+                ImageRoom: true
+            }
+        });
+        if (!result) {
+            res.status(404).json({ message: "Pas d'enregistrement pour cette id" })
+        }
+        else {
+            res.status(200).json({ room: result });
+        }
+    } catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+};
+
+export const getAllRooms = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = await prisma.room.findMany({ include: { ImageRoom: true } });
+        // const imageRoom = await prisma.imageRoom.findMany();
+        // for (const room of result) {
+        //     console.log(room);
+        // }
+        res.status(200).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+};
+
+export const createRoom = async (req: Request, res: Response, next: NextFunction) => {
+    const dataToCreateRoom = req.body.data.room;
+    try {
+        if (req.files) {
+            const dataToCreateImageRoom = req.body.data.imageRoom;
+            const images = (req.files as Express.Multer.File[]).map(file => ({
+                title: file.filename,
+                description: dataToCreateImageRoom.description,
+                urlStorage: `${process.env.PROTOCOL}://${process.env.HOSTNAME}:${process.env.PORT}/public/images/${file.filename}`
+            }));
+            const result = await prisma.room.create({
+                data: {
+                    ...dataToCreateRoom,
+                    ImageRoom: {
+                        create: images
+                    }
+                },
+                include: {
+                    ImageRoom: true
+                }
+            });
+
+            res.status(201).json({ room: result });
+        } else {
+            const result = await prisma.room.create({
+                data: { ...dataToCreateRoom },
+            });
+            res.status(201).json({ room: result });
+
+        }
+    } catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+};
+
+// export const updateRoom = async (req: Request, res: Response, next: NextFunction) => {
+//     const id = req.params.id;
+//     const dataToUpdate = req.body.data;
+//     try {
+//         const result = await prisma.room.update({
+//             where: { id: Number(id) },
+//             data: dataToUpdate,
+//         });
+//         let img;
+//         if (req.file) {
+//             const dataToUpdateImageRoom = req.body.data.imageRoom;
+//             img = await prisma.imageRoom.updateMany({
+//                 where: {
+//                     roomId: result.id,
+//                     id: dataToUpdateImageRoom.id,
+//                 },
+//                 data: {
+//                     title: req.file.filename,
+//                     description: dataToUpdateImageRoom.description,
+//                     urlStorage: `${process.env.PROTOCOL}://${req.get('host')}/public/images/${req.file.filename}`,
+//                     roomId: result.id,
+//                 },
+//             });
+//         }
+//         res.status(201).json({ room: result, images: img });
+//     } catch (error) {
+//         // gestion de l'erreur
+//         console.error(error);
+//         res.status(500).json({ error: 'Une erreur est survenue.' });
+//     }
+// };
+export const updateRoom = async (req: Request, res: Response, next: NextFunction) => {
+    const roomId = Number(req.params.id);
+    const dataToUpdate = req.body.data;
+    try {
+        if (req.files) {
+            const images = (req.files as Express.Multer.File[]).map(file => ({
+                title: file.filename,
+                description: dataToUpdate.description,
+                urlStorage: `${process.env.PROTOCOL}://${process.env.HOSTNAME}:${process.env.PORT}/public/images/${file.filename}`
+            }));
+
+            // erreur ici 
+            const result = await prisma.room.update({
+                where: { id: roomId },
+
+                data: {
+                    ...dataToUpdate,
+                    ImageRoom: {
+                        upsert: {
+                            create: images,
+                            update: images,
+                        }
+                    }
+                },
+                include: {
+                    ImageRoom: true
+                }
+            });
+            res.status(200).json({ room: result });
+        }
+        else {
+            const result = await prisma.room.update({
+                where: { id: roomId },
+                data: { ...dataToUpdate },
+            });
+            res.status(201).json({ room: result });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+};
+
+
+export const deleteImageRoom =async (req:Request, res: Response) => {
+    const { id } = req.params
+    try {
+        const imgDel = await prisma.imageRoom.delete({where:{id:Number(id)}})
+        fs.unlink(`public/images/${imgDel.title}`, () => {console.log(`img ${imgDel.title} delete`)} )
+        res.status(200).json({message: "l'élément a bien été supprimé"})
+    } catch (error) {
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+}
+
+
+
+export const deleteRoom = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+    try {
+        const imgArray = await prisma.imageRoom.findMany({
+            where: {
+                roomId: Number(id),
+            },
+        });
+        for (const i of imgArray) {
+            fs.unlink(`public/images/${i.title}`, () => {console.log(`img ${i.title} delete`)} )
+        }
+        await prisma.room.update({
+            where: {
+              id: Number(id),
+            },
+            data: {
+              ImageRoom: {
+                deleteMany: {},
+              },
+            },
+          })
+        const result = await prisma.room.delete({
+            where: {
+                id: Number(id),
+            },
+        });
+        res.status(201).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ error: 'Une erreur est survenue.' });
+    }
+};
