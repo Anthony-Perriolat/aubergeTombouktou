@@ -23,7 +23,9 @@ export const getcategoriesArticleById = async (req: Request, res: Response, next
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
 
 export const getAllcategoriesArticle = async (req: Request, res: Response, next: NextFunction) => {
@@ -33,9 +35,15 @@ export const getAllcategoriesArticle = async (req: Request, res: Response, next:
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
 
+interface createCategoriesArticleData {
+        title: string,
+        description: string,
+    }
 export const createcategoriesArticle = async (req: Request, res: Response, next: NextFunction) => {
     const dataToCreate = req.body.data;
     try {
@@ -46,9 +54,14 @@ export const createcategoriesArticle = async (req: Request, res: Response, next:
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
-
+interface updateCategoriesArticleData {
+    title?: string,
+    description?: string,
+}
 export const updatecategoriesArticle = async (req: any, res: any, next: any) => {
     const id = req.params.id;
     const dataToUpdate = req.body.data;
@@ -61,7 +74,9 @@ export const updatecategoriesArticle = async (req: any, res: any, next: any) => 
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
 
 export const deletecategoriesArticle = async (req: Request, res: Response, next: NextFunction) => {
@@ -76,5 +91,7 @@ export const deletecategoriesArticle = async (req: Request, res: Response, next:
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };

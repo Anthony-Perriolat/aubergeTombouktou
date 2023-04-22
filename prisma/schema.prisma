@@ -11,15 +11,15 @@ datasource db {
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  lastName   String
-  firstName  String
-  email      String    @unique
-  phone      String
+  id          Int       @id @default(autoincrement())
+  lastName    String
+  firstName   String
+  email       String    @unique
+  phone       String
   nationality String
-  permission String    @default("customer")
-  password   String
-  bookings   Booking[]
+  permission  String    @default("customer")
+  password    String
+  bookings    Booking[]
 }
 
 model Article {
@@ -30,8 +30,8 @@ model Article {
   date_publish DateTime          @default(now())
   date_update  DateTime?         @updatedAt
   images       ImageArticle[]
-  categorie    CategorieArticle? @relation(fields: [categorieId], references: [id])
-  categorieId  Int?
+  categorie    CategorieArticle @relation(fields: [categorieId], references: [id])
+  categorieId  Int
 }
 
 model ImageArticle {
@@ -40,7 +40,7 @@ model ImageArticle {
   description String?  @db.VarChar(255)
   urlStorage  String
   article     Article? @relation(fields: [articleId], references: [id])
-  articleId   Int?
+  articleId   Int
 }
 
 model CategorieArticle {
@@ -54,7 +54,7 @@ model Room {
   id                  Int         @id @default(autoincrement())
   name                String      @unique @db.VarChar(128)
   description         String?     @db.VarChar(255)
-  personNumberPerRoom Int?        @default(1)
+  personNumberPerRoom Int        @default(1)
   price               Float
   bed                 Int?        @default(1)
   Booking             Booking[]

@@ -9,13 +9,17 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       if (!token) {
         throw new Error('Missing token');
       }
-      const decodedToken = jwt.verify(token, `process.env.TOKEN_SECRET`) as JwtPayload;
+      const decodedToken = jwt.verify(token, `${process.env.TOKEN_SECRET}`) as JwtPayload;
       const userId:number = decodedToken.userId;
-      if (userId) {
-        // On ajoute la propriété "auth" à l'objet "req"
-        const auth = req.auth!;
-        auth.userId = userId ;
-      }
+      // if (userId) {
+      //   // On ajoute la propriété "auth" à l'objet "req"
+      //   const auth = req.auth!;
+      //   console.log(auth)
+      //   auth.userId = userId ;
+      // }
+      const auth = req.auth || {};
+      auth.userId = decodedToken.userId;
+      req.auth = auth;
       next();
     } else {
       throw new Error('Missing authorization header');

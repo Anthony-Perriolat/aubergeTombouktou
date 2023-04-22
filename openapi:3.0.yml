@@ -1,0 +1,1083 @@
+openapi: '3.0.2'
+info:
+  title: API Booking
+  version: '1.0'
+servers:
+  - url: http://localhost:3000/api/
+
+
+paths:
+
+# articles
+  /articles/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Identifiant de l'article
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Récupérer un article par son identifiant
+      responses:
+        '200':
+          description: Article trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          description: Article introuvable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "article inexistant"
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Une erreur est survenue."
+      tags:
+        - Articles
+    put:
+      summary: Mettre à jour un article
+      description: |
+        Cette route permet de mettre à jour un article en utilisant les données fournies dans le corps de la requête. Si des images sont jointes à la requête, celles-ci seront associées à l'article et stockées sur le serveur.
+      parameters:
+        - in: path
+          name: id
+          description: L'ID de l'article à mettre à jour
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Les données à utiliser pour mettre à jour l'article
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    title: 
+                      type: string
+                    description: 
+                      type: string
+                    content: 
+                      type: string
+                    categorie: 
+                      type: number
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Le nouvel état de l'article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        '201':
+          description: Le nouvel état de l'article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        '400':
+          description: Les données de la requête sont invalides
+        '404':
+          description: L'article spécifié n'existe pas
+        '500':
+          description: Une erreur est survenue du côté du serveur
+      tags:
+        - Articles
+    delete:
+      summary: Supprime un article
+      parameters:
+        - name: id
+          in: path
+          description: Identifiant de l'article à supprimer
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Article supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+        '500':
+          description: Une erreur est survenue
+          content:
+            application/json:
+              schema:
+                type: object
+      tags:
+        - Articles
+
+  /articles:
+    get:
+      summary: Récupère tous les articles
+      description: Récupère tous les articles enregistrés dans la base de données, ou ceux qui appartiennent à une catégorie donnée si le paramètre `categorieId` est fourni dans la requête.
+      parameters:
+        - in: query
+          name: categorieId
+          description: ID de la catégorie des articles à récupérer
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        '500':
+          description: Une erreur est survenue.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Description de l'erreur survenue.
+      tags:
+        - Articles
+
+    post:
+      summary: Créer un nouvel article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    title: 
+                      type: string
+                    description: 
+                      type: string
+                    content: 
+                      type: string
+                    categorie: 
+                      type: number
+      responses:
+        '201':
+          description: Article créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Article"
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+      tags:
+        - Articles
+
+  /article/img/{id}:
+    delete:
+      summary: Supprime une image d'article par ID
+      description: Supprime une image d'article correspondant à l'ID fourni en paramètre.
+      parameters:
+        - in: path
+          name: id
+          description: L'ID de l'image à supprimer
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Élément supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message de confirmation
+                    example: "l'élément a bien été supprimé"
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Message d'erreur
+                    example: "Une erreur est survenue."
+      tags:
+        - Articles
+
+# bookings
+  /myBookings/{id}:
+    get:
+      summary: Récupérer une réservation par son identifiant
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Identifiant de la réservation à récupérer
+      responses:
+        '200':
+          description: Réservation récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  room:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      description:
+                        type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                  start:
+                    type: string
+                    format: date-time
+                  end:
+                    type: string
+                    format: date-time
+        '404':
+          description: La réservation n'existe pas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Une erreur est survenue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+      tags:
+        - "Bookings"
+
+    put:
+      summary: Mettre à jour une réservation
+      description: Met à jour les informations d'une réservation existante.
+      parameters:
+        - in: path
+          name: id
+          description: ID de la réservation à mettre à jour
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: Authorization
+          description: Token JWT d'authentification
+          required: true
+          schema:
+            type: string
+        
+      requestBody:
+          description: Données de la réservation à mettre à jour
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roomId:
+                    type: integer
+                    description: ID de la chambre réservée
+                  personNumber:
+                    type: integer
+                    description: Nombre de personnes pour la réservation
+                  email:
+                    type: string
+                    description: Adresse email du client
+      responses:
+        201:
+          description: Réservation mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        400:
+          description: Erreur de validation des données
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur
+        401:
+          description: Erreur d'authentification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message d'erreur
+        500:
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Message d'erreur du serveur
+      tags:
+        - "Bookings"
+    delete:
+      summary: Supprime une réservation.
+      parameters:
+        - name: id
+          in: path
+          description: L'identifiant de la réservation à supprimer.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: La réservation a été supprimée avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: Le nombre de réservations supprimées.
+        '404':
+          description: La réservation n'existe pas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Le message d'erreur.
+        '500':
+          description: Une erreur est survenue.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Le message d'erreur.
+      tags:
+        - "Bookings"
+
+  /myBookings:
+      get:
+        summary: Récupérer les réservations de l'utilisateur
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: ID de la réservation
+                      userId:
+                        type: integer
+                        description: ID de l'utilisateur ayant effectué la réservation
+                      createdAt:
+                        type: string
+                        format: date-time
+                        description: Date de création de la réservation
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        description: Date de mise à jour de la réservation
+          '500':
+            description: Erreur interne du serveur
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Message d'erreur
+        tags:
+          - "Bookings"
+
+  /bookings:
+    get:
+      summary: Récupérer toutes les réservations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    user_id:
+                      type: integer
+                    room_id:
+                      type: integer
+                    start_date:
+                      type: string
+                      format: date-time
+                    end_date:
+                      type: string
+                      format: date-time
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+      tags:
+        - "Bookings"
+    post:
+      summary: Créer une réservation
+      requestBody:
+        description: Données pour créer une réservation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    email: 
+                      type: string
+                    phone: 
+                      type: string
+                    dateCheckIn: 
+                      type: string
+                    dateCheckOut: 
+                      type: string
+                    personNumber: 
+                      type: number
+                    comment:
+                      type: string
+                    roomId: 
+                      type: number
+      responses:
+        '201':
+          description: Réservation créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Non autorisé
+        '409':
+          description: Conflit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Erreur serveur
+      tags:
+        - "Bookings"
+
+# Category Articles
+  /categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: L'identifiant de la catégorie à récupérer.
+        schema:
+          type: integer
+    get:
+      summary: Récupérer une catégorie d'article par son identifiant.
+      responses:
+        '200':
+          description: Succès. La catégorie d'article a été trouvée et renvoyée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: L'identifiant de la catégorie.
+                  title:
+                    type: string
+                    description: Le nom de la catégorie.
+                  description:
+                    type: string
+                    description: La description de la catégorie.
+                  articles:
+                    type: array
+                    description: La liste des articles associés à la catégorie.
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: L'identifiant de l'article.
+                        nom:
+                          type: string
+                          description: Le nom de l'article.
+                        description:
+                          type: string
+                          description: La description de l'article.
+        '404':
+          description: La catégorie d'article n'a pas été trouvée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Le message d'erreur.
+        '500':
+          description: Erreur interne du serveur.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Le message d'erreur.
+      tags:
+        - "Category Articles"
+
+    put:
+      summary: Mettre à jour une catégorie d'article
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: L'identifiant de la catégorie d'article à mettre à jour
+          schema:
+            type: integer
+      requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      title: 
+                        type: string
+                      description:
+                        type: string 
+                description: Les données à mettre à jour pour la catégorie d'article
+                
+      responses:
+        '201':
+          description: La catégorie d'article mise à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  description:
+                    type: string
+        '500':
+          description: Une erreur est survenue lors de la mise à jour de la catégorie d'article
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+      tags:
+        - "Category Articles"
+
+    delete:
+      summary: Supprime une catégorie d'article.
+      parameters:
+        - in: path
+          name: id
+          description: ID de la catégorie d'article à supprimer.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: La catégorie d'article a été supprimée avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID de la catégorie d'article supprimée.
+        '500':
+          description: Une erreur est survenue lors de la suppression de la catégorie d'article.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Description de l'erreur survenue.
+      tags:
+        - "Category Articles"
+
+  /categories:
+    get:
+      summary: Récupérer toutes les catégories d'article
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Identifiant unique de la catégorie d'article
+                    title:
+                      type: string
+                      description: Nom de la catégorie d'article
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Description de l'erreur
+      tags:
+        - "Category Articles"
+    post:
+      summary: Créer une nouvelle catégorie d'article
+      requestBody:
+        description: Les données de la catégorie d'article à créer
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    title: 
+                      type: string
+                    description:
+                      type: string 
+              example:
+                data:
+                  nom: "Nouvelle catégorie"
+                  description: "Description de la nouvelle catégorie"
+      responses:
+        '201':
+          description: La catégorie d'article a été créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategorieArticle'
+        '500':
+          description: Une erreur est survenue lors de la création de la catégorie d'article
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Une erreur est survenue."
+      tags:
+        - "Category Articles"
+
+  /payment:
+    post:
+      description: Effectue la récupération d'un paiement
+      requestBody:
+        description: Objet contenant les données de paiement
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    idPaymentIntent: 
+                      type: string
+                    booking:
+                      type: object
+                      properties:
+                        id: 
+                          type: number
+                        uuid:
+                          type: string
+
+      responses:
+        '200':
+          description: Paiement effectué avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Paiement effectué avec succès
+                  paymentIntent:
+                    type: object
+                    properties:
+                      client_secret: 
+                        type: string
+                      status:
+                        type: string
+        '400':
+          description: Le paiement a échoué ou est en attente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Le paiement a échoué ou est en attente.
+                  paymentIntent:
+                    type: object
+                    properties:
+                      client_secret: 
+                        type: string
+                      status:
+                        type: string
+        '500':
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Une erreur est survenue lors du traitement du paiement
+      tags:
+        - "Payments"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        lastName:
+          type: string
+        firstName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        nationality:
+          type: string
+        permission:
+          type: string
+        password:
+          type: string
+        bookings:
+          type: array
+          items:
+            type: number
+            $ref: '#/components/schemas/Booking'
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        description:
+          type: string
+        content:
+          type: string
+        date_publish:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        images:
+          type: array
+          items:
+            type: number
+            $ref: '#/components/schemas/ImageArticle'
+        categorie:
+          type: number
+          $ref: '#/components/schemas/CategorieArticle'
+
+    ImageArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        title:
+          type: string
+        description:
+          type: string
+        urlStorage:
+          type: string
+        article:
+          $ref: '#/components/schemas/Article'
+          type: number
+
+    CategorieArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant de la catégorie.
+        title:
+          type: string
+          maxLength: 128
+          description: Titre de la catégorie.
+        description:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Description de la catégorie.
+        articles:
+          type: array
+          items:
+            type: number
+            $ref: '#/components/schemas/Article'
+          description: Liste des articles de cette catégorie.
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant de la chambre.
+        name:
+          type: string
+          maxLength: 128
+          description: Nom de la chambre.
+        description:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Description de la chambre.
+        personNumberPerRoom:
+          type: integer
+          format: int32
+          default: 1
+          description: Nombre de personnes par chambre.
+        price:
+          type: number
+          format: float
+          description: Prix de la chambre.
+        bed:
+          type: integer
+          format: int32
+          nullable: true
+          default: 1
+          description: Nombre de lits dans la chambre.
+        Booking:
+          type: array
+          items:
+            type: number
+            $ref: '#/components/schemas/Booking'
+          description: Liste des réservations de cette chambre.
+        ImageRoom:
+          type: array
+          items:
+            type: number
+            $ref: '#/components/schemas/ImageRoom'
+          description: Liste des images de cette chambre.
+
+    ImageRoom:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant de l'image.
+        title:
+          type: string
+          maxLength: 128
+          description: Titre de l'image.
+        description:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Description de l'image.
+        urlStorage:
+          type: string
+          description: URL de l'image.
+        roomId:
+          type: integer
+          format: int32
+          nullable: true
+          description: Identifiant de la chambre associée à cette image.
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier for a booking
+        uuid:
+          type: string
+          description: The unique identifier for a booking in UUID format
+        phone:
+          type: string
+          description: The phone number associated with the booking
+        email:
+          type: string
+          description: The email associated with the booking
+        dateCheckIn:
+          type: string
+          format: date-time
+          description: The check-in date for the booking
+        dateCheckOut:
+          type: string
+          format: date-time
+          description: The check-out date for the booking
+        duration:
+          type: integer
+          description: The duration of the booking in days
+        personNumber:
+          type: integer
+          description: The number of people associated with the booking
+        comment:
+          type: string
+          description: Any comments associated with the booking
+        userId:
+          type: integer
+          description: The user ID associated with the booking
+        roomId:
+          type: integer
+          description: The room ID associated with the booking
+        hasPaid:
+          type: boolean
+          description: Whether the booking has been paid for or not
+        price:
+          type: number
+          description: The price of the booking
+        stripePaymentIntent:
+          type: string
+          description: The Stripe payment intent associated with the booking
+        createdOn:
+          type: string
+          format: date-time
+          description: The date and time the booking was created
+        updatedOn:
+          type: string
+          format: date-time
+          description: The date and time the booking was last updated
+        paymentDate:
+          type: string
+          format: date-time
+          description: The date and time the booking was paid for
+
+

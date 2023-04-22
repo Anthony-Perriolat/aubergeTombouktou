@@ -12,7 +12,7 @@ export default async (req: Request, res: Response, next: NextFunction): Promise<
       res.status(403).json({ message: "Vous n'êtes pas autorisé à accéder à cette ressource." });
     }
   } catch (error) {
-    next(error);
+    next();
   } finally {
     await prisma.$disconnect();
   }

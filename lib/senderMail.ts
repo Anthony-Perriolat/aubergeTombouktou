@@ -1,54 +1,66 @@
 import nodemailer from 'nodemailer';
 import handlebars from 'handlebars';
 import fs from 'fs/promises';
+import { Decimal } from '@prisma/client/runtime';
 
-interface SendMailData {
-  name: string;
+interface SendMailUserData {
+  nameUser: string;
   email: string;
 }
-
+interface SendMailBookingData {
+  nameUser: string;
+  email: string;
+  dateCheckIn: Date;
+  dateCheckOut: Date;
+  nameRoom: string;
+  duration: Number;
+  price: Number;
+  nbCustomer: Number;
+}
 // create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  host: 'ssl0.ovh.net',
+  host: "smtp.hostinger.com",
   port: 465,
-  secure: true, // true for 465, false for other ports
+  secure: true, // utilisation du TLS
   auth: {
-    user: process.env.MAIL_SENDER!, // your email address
-    pass: process.env.MAIL_PW! // your email password
-  }
+    user: 'contact@soin-dargan.fr',
+    pass: 'Perriolat26!'
+  },
 });
 
-async function sendMailWelcome(data: SendMailData) {
+async function sendMailWelcome(data: SendMailUserData) {
   // compile the template
   const template = handlebars.compile(await fs.readFile('lib/templateMail/welcomeUser.hbs', 'utf8'));
   // generate the HTML content of the email using the template and data
-  const htmlContent = template({ name: data.name });
+  const htmlContent = template({ nameUser: data.nameUser });
   await transporter.sendMail({
-    from: process.env.MAIL_SENDER!, // sender address
+    // from: 'contact@soin-dargan.fr', // sender address
+    from: process.env.MAIL_SENDER,
     to: data.email, // list of receivers
     subject: "Bienvenue chez l'auberge de Tombouktou", // Subject line
     html: htmlContent // html body
   });
+
 }
 
-async function sendMailGoodbye(data: SendMailData) {
+async function sendMailGoodbye(data: SendMailUserData) {
   // compile the template
   const template = handlebars.compile(await fs.readFile('lib/templateMail/goodbyeUser.hbs', 'utf8'));
   // generate the HTML content of the email using the template and data
-  const htmlContent = template({ name: data.name });
+  const htmlContent = template({ nameUser: data.nameUser });
   await transporter.sendMail({
-    from: process.env.MAIL_SENDER!, // sender address
+    from: process.env.MAIL_SENDER, // sender address
     to: data.email, // list of receivers
     subject: "Au revoir de la part de l'auberge de Tombouktou", // Subject line
     html: htmlContent // html body
   });
 }
 
-async function sendMailUpdateEmail(data: SendMailData) {
+async function sendMailUpdateEmail(data: SendMailUserData) {
   // compile the template
   const template = handlebars.compile(await fs.readFile('lib/templateMail/updateMail.hbs', 'utf8'));
   // generate the HTML content of the email using the template and data
-  const htmlContent = template({ name: data.name });
+  const htmlContent = template({ nameUser: data.nameUser });
   await transporter.sendMail({
     from: process.env.MAIL_SENDER!, // sender address
     to: data.email, // list of receivers
@@ -57,8 +69,37 @@ async function sendMailUpdateEmail(data: SendMailData) {
   });
 }
 
+async function sendMailCreateBooking(data: SendMailBookingData) {
+  // compile the template
+  const template = handlebars.compile(await fs.readFile('lib/templateMail/createBookingMail.hbs', 'utf8'));
+  // generate the HTML content of the email using the template and data
+  const htmlContent = template({ nameUser: data.nameUser, dateCheckIn: data.dateCheckIn, dataCheckOut: data.dateCheckOut, nameRoom: data.nameRoom, price: data.price, duration: data.duration, nbCustomer: data.nbCustomer });
+  await transporter.sendMail({
+    from: process.env.MAIL_SENDER!, // sender address
+    to: data.email, // list of receivers
+    subject: "Reservation pour l'auberge de Tombouktou", // Subject line
+    html: htmlContent // html body
+  });
+}
+
+async function sendMailUpdateBooking(data: SendMailBookingData) {
+  // compile the template
+  const template = handlebars.compile(await fs.readFile('lib/templateMail/updateBookingMail.hbs', 'utf8'));
+  // generate the HTML content of the email using the template and data
+  const htmlContent = template({ nameUser: data.nameUser, dateCheckIn: data.dateCheckIn, dataCheckOut: data.dateCheckOut, nameRoom: data.nameRoom, price: data.price, duration: data.duration, nbCustomer: data.nbCustomer });
+  await transporter.sendMail({
+    from: process.env.MAIL_SENDER!, // sender address
+    to: data.email, // list of receivers
+    subject: "Modification de la reservation pour l'auberge de Tombouktou", // Subject line
+    html: htmlContent // html body
+  });
+}
+
+
 export {
   sendMailWelcome,
   sendMailGoodbye,
   sendMailUpdateEmail,
+  sendMailCreateBooking,
+  sendMailUpdateBooking,
 };

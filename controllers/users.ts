@@ -11,6 +11,10 @@ import { Request, Response } from 'express';
 import prisma from '../client';
 
 
+
+
+
+
 export const getMyUser = async (req: Request, res: Response) => {
   const idMyUser = req.auth.userId;
   try {
@@ -29,6 +33,8 @@ export const getMyUser = async (req: Request, res: Response) => {
   } catch {
     // gestion de l'erreur
     res.status(500).json({ error: 'Une erreur est survenue.' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
@@ -44,11 +50,13 @@ export const updateMyUser = async (req: Request, res: Response) => {
       where: { id: Number(idMyUser) },
       data: dataToUpdate,
     });
-    dataToUpdate['email'] ? sendMailUpdateEmail({ name: `${result.lastName} ${result.firstName}`, email: result.email }) : null;
+    dataToUpdate['email'] ? sendMailUpdateEmail({ nameUser: `${result.lastName} ${result.firstName}`, email: result.email }) : null;
     res.status(201).json(result);
   } catch (error) {
     // gestion de l'erreur
     res.status(500).json({ error: 'Une erreur est survenue.' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
@@ -62,11 +70,13 @@ export const deleteMyUser = async (req: Request, res: Response) => {
       },
     });
     const { password, ...fieldUser } = result
-    sendMailGoodbye({ name: `${result.lastName} ${result.firstName}`, email: result.email });
+    sendMailGoodbye({ nameUser: `${result.lastName} ${result.firstName}`, email: result.email });
     res.status(201).json(fieldUser);
   } catch {
     // gestion de l'erreur
     res.status(500).json({ error: 'Une erreur est survenue.' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
@@ -77,6 +87,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
   } catch {
     // gestion de l'erreur
     res.status(500).json({ error: 'Une erreur est survenue.' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 export const login = async (req: Request, res: Response): Promise<void> => {
@@ -116,6 +128,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   } catch (err) {
     res.status(401).json({ message: 'mauvaise combinaison de mdp et mail' });
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
@@ -133,14 +147,17 @@ export const signUpUser = async (req: Request, res: Response): Promise<void> => 
         data: { ...data, password: hash },
       });
   
-      sendMailWelcome({ name: `${result.lastName} ${result.firstName}`, email: result.email });
+      sendMailWelcome({ nameUser: `${result.lastName} ${result.firstName}`, email: result.email });
   
       const { password, ...fieldUser } = result;
       res.status(201).json(fieldUser);
     }
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "l'utilisateur existe déjà ou une erreur c'est produite" })
-  };
+  } finally {
+    await prisma.$disconnect();
+  }
 }
   
   export const updateUser = async (req: Request, res: Response): Promise<void> => {
@@ -160,5 +177,7 @@ export const signUpUser = async (req: Request, res: Response): Promise<void> => 
       res.status(201).json(result);
     } catch (error) {
       res.status(500).json({ error: 'Une erreur est survenue.' });
+    } finally {
+      await prisma.$disconnect();
     }
   };

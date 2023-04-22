@@ -1,217 +1,201 @@
-openapi: 3.0.3
-info:
-  title: Gestion des chambres d'hôtel API
-  description: API permettant la gestion des chambres d'hôtel
-  version: 1.0.0
-servers:
-  - url: http://localhost:3000
-paths:
-  /rooms/{id}:
-    get:
-      summary: Récupérer une chambre par ID
-      parameters:
-        - name: id
-          in: path
-          description: ID de la chambre à récupérer
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Chambre récupérée avec succès
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  room:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      // ajouter les autres propriétés de la chambre
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        // ajouter les autres propriétés de l'image de la chambre
-        '404':
-          description: Chambre non trouvée
-    put:
-      summary: Mettre à jour une chambre par ID
-      parameters:
-        - name: id
-          in: path
-          description: ID de la chambre à mettre à jour
-          required: true
-          schema:
-            type: integer
-        - name: data
-          in: body
-          description: Données de la chambre à mettre à jour
-          required: true
-          schema:
-            type: object
-            properties:
-              data:
-                type: object
-                properties:
-                  room:
-                    type: object
-                    properties:
-                      // ajouter les propriétés de la chambre à mettre à jour
-                  imageRoom:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      description:
-                        type: string
-                      // ajouter les autres propriétés de l'image de la chambre à mettre à jour
-      responses:
-        '200':
-          description: Chambre mise à jour avec succès
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  room:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      // ajouter les autres propriétés de la chambre
-                  images:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        // ajouter les autres propriétés de l'image de la chambre
-        '404':
-          description: Chambre non trouvée
-    delete:
-      summary: Supprimer une chambre par ID
-      parameters:
-        - name: id
-          in: path
-          description: ID de la chambre à supprimer
-          required: true
-          schema:
-            type: integer
-      responses:
-        '201':
-          description: Chambre supprimée avec succès
-        '404':
-          description: Chambre non trouvée
-  /rooms:
-    get:
-      summary: Récupérer toutes les chambres
-      responses:
-        '200':
-          description: Chambres récupérées avec succès
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    // ajouter les autres propriétés de la chambre
-    post:
-      summary: Créer une nouvelle chambre
-      description: Crée une nouvelle chambre avec une éventuelle image associée.
-      requestBody:
+/**
+ * @swagger
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: ID de l'utilisateur
+        lastName:
+          type: string
+          description: Nom de famille de l'utilisateur
+        firstName:
+          type: string
+          description: Prénom de l'utilisateur
+        email:
+          type: string
+          description: Adresse e-mail de l'utilisateur
+        phone:
+          type: string
+          description: Numéro de téléphone de l'utilisateur
+        nationality:
+          type: string
+          description: Nationalité de l'utilisateur
+        permission:
+          type: string
+          description: Niveau d'autorisation de l'utilisateur
+        password:
+          type: string
+          description: Mot de passe de l'utilisateur
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: ID de l'article
+        title:
+          type: string
+          description: Titre de l'article
+        description:
+          type: string
+          description: Description de l'article
         content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                data:
-                  type: object
-                  properties:
-                    room:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: Le nom de la chambre.
-                        description:
-                          type: string
-                          description: La description de la chambre.
-                        price:
-                          type: number
-                          format: float
-                          description: Le prix de la chambre par nuit.
-                    imageRoom:
-                      type: object
-                      properties:
-                        description:
-                          type: string
-                          description: La description de l'image de la chambre.
-                file:
-                  type: string
-                  format: binary
-                  description: L'image de la chambre (facultatif).
-      responses:
-        '201':
-          description: La chambre a été créée avec succès.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  room:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        format: int64
-                        description: L'identifiant de la chambre.
-                      name:
-                        type: string
-                        description: Le nom de la chambre.
-                      description:
-                        type: string
-                        description: La description de la chambre.
-                      price:
-                        type: number
-                        format: float
-                        description: Le prix de la chambre par nuit.
-                  images:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        format: int64
-                        description: L'identifiant de l'image de la chambre.
-                      title:
-                        type: string
-                        description: Le nom de l'image de la chambre.
-                      description:
-                        type: string
-                        description: La description de l'image de la chambre.
-                      urlStorage:
-                        type: string
-                        description: L'URL de stockage de l'image de la chambre.
-                      roomId:
-                        type: integer
-                        format: int64
-                        description: L'identifiant de la chambre associée à l'image.
-        '500':
-          description: Une erreur est survenue lors de la création de la chambre.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Le message d'erreur.
+          type: string
+          description: Contenu de l'article
+        date_publish:
+          type: string
+          format: date-time
+          description: Date de publication de l'article
+        date_update:
+          type: string
+          format: date-time
+          description: Date de mise à jour de l'article
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageArticle'
+        categorie:
+          $ref: '#/components/schemas/CategorieArticle'
+          
+    ImageArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: ID de l'image de l'article
+        title:
+          type: string
+          description: Titre de l'image de l'article
+        description:
+          type: string
+          description: Description de l'image de l'article
+        urlStorage:
+          type: string
+          description: URL de stockage de l'image de l'article
+        article:
+          $ref: '#/components/schemas/Article'
+          
+    CategorieArticle:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: ID de la catégorie d'article
+        title:
+          type: string
+          description: Titre de la catégorie d'article
+        description:
+          type: string
+          description: Description de la catégorie d'article
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+            **/
+           /**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Room:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         personNumberPerRoom:
+ *           type: integer
+ *         price:
+ *           type: number
+ *         bed:
+ *           type: integer
+ *         Booking:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Booking'
+ *         ImageRoom:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ImageRoom'
+ */
+
+  
+  /**
+   * @swagger
+   * components:
+   *   schemas:
+   *     ImageRoom:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *         title:
+   *           type: string
+   *         description:
+   *           type: string
+   *         urlStorage:
+   *           type: string
+   *         room:
+   *           $ref: '#/components/schemas/Room'
+   */
+  
+  /**
+   * @swagger
+   * components:
+   *   schemas:
+   *     Booking:
+   *       type: object
+   *       properties:
+   *         id:
+   *           type: integer
+   *         uuid:
+   *           type: string
+   *         phone:
+   *           type: string
+   *         email:
+   *           type: string
+   *         dateCheckIn:
+   *           type: string
+   *           format: date-time
+   *         dateCheckOut:
+   *           type: string
+   *           format: date-time
+   *         duration:
+   *           type: integer
+   *         personNumber:
+   *           type: integer
+   *         comment:
+   *           type: string
+   *         user:
+   *           $ref: '#/components/schemas/User'
+   *         room:
+   *           $ref: '#/components/schemas/Room'
+   *         hasPaid:
+   *           type: boolean
+   *         price:
+   *           type: number
+   *         stripePaymentIntent:
+   *           type: string
+   *         createdOn:
+   *           type: string
+   *           format: date-time
+   *         updatedOn:
+   *           type: string
+   *           format: date-time
+   *         paymentDate:
+   *           type: string
+   *           format: date-time
+   */

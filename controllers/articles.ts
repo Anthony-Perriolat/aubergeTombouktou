@@ -21,57 +21,80 @@ export const getArticleById = async (req: Request, res: Response, next: NextFunc
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
-
 export const getAllArticles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const result = await prisma.article.findMany();
+        const categorieIdQuery = req.query.categorieId;
+        const where = categorieIdQuery ? { categorieId: Number(categorieIdQuery) } : {};
+    
+        const result = await prisma.article.findMany({ where });
+    
         res.status(200).json(result);
-    } catch (error) {
-        // gestion de l'erreur
-        res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Une erreur est survenue." });
+      } finally {
+        await prisma.$disconnect();
+      }
 };
 
+interface createArticleData {
+    title: string,
+    description: string,
+    content: string,
+    categorieId: number,
+}
 export const createArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
-    const dataToCreateRoom = req.body.data.article;
+    const dataToCreateArticle: createArticleData = req.body.data;
     try {
         if (req.files) {
             const images = (req.files as Express.Multer.File[]).map(file => ({
                 title: file.filename,
-                description: dataToCreateRoom.description,
+                description: dataToCreateArticle.description,
                 urlStorage: `${process.env.PROTOCOL}://${process.env.HOSTNAME}:${process.env.PORT}/public/images/${file.filename}`
             }));
             const result = await prisma.article.create({
                 data: {
-                    ...dataToCreateRoom,
-                    ImageRoom: {
+                    ...dataToCreateArticle,
+                    images: {
                         create: images
-                    }
+                    },
+                    categorieId: dataToCreateArticle.categorieId
                 },
                 include: {
                     images: true
                 }
             });
-            res.status(201).json({ article: result });
+            res.status(201).json(result);
         } else {
             const result = await prisma.article.create({
-                data: { ...dataToCreateRoom },
+                data: { ...dataToCreateArticle },
+
             });
-            res.status(201).json({ article: result });
+            res.status(201).json(result);
 
         }
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    }  finally {
+        await prisma.$disconnect();
+      }
 };
 
+interface updateArticleData {
+    title: string,
+    description: string,
+    content: string,
+    categorieId: number,
+}
 export const updateArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const id = Number(req.params.id);
-    const dataToUpdate = req.body.data;
+    const dataToUpdate: updateArticleData = req.body.data;
     try {
         if (req.files) {
             const images = (req.files as Express.Multer.File[]).map(file => ({
@@ -79,37 +102,47 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
                 description: dataToUpdate.description,
                 urlStorage: `${process.env.PROTOCOL}://${process.env.HOSTNAME}:${process.env.PORT}/public/images/${file.filename}`
             }));
-
-            // erreur ici 
             const result = await prisma.article.update({
                 where: { id: id },
 
                 data: {
                     ...dataToUpdate,
                     images: {
-                        upsert: {
-                            create: images,
-                            update: images,
-                        }
-                    }
+                        upsert: images.map(image => ({
+                            where: { title: image.title },
+                            create: {
+                                title: image.title,
+                                description: image.description,
+                                urlStorage: image.urlStorage,
+                            },
+                            update: {
+                                title: image.title,
+                                description: image.description,
+                                urlStorage: image.urlStorage,
+                            },
+                        })),
+                    },
                 },
                 include: {
                     images: true
                 }
             });
-            res.status(200).json({ article: result });
+            res.status(200).json(result);
         }
         else {
             const result = await prisma.article.update({
                 where: { id: id },
                 data: { ...dataToUpdate },
             });
-            res.status(201).json({ room: result });
+            res.status(201).json(result);
         }
     } catch (error) {
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    }  finally {
+        await prisma.$disconnect();
+      }
 };
+
 export const deleteImageArticle = async (req: Request, res: Response) => {
     const { id } = req.params
     try {
@@ -118,8 +151,11 @@ export const deleteImageArticle = async (req: Request, res: Response) => {
         res.status(200).json({ message: "l'élément a bien été supprimé" })
     } catch (error) {
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 }
+
 export const deleteArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { id } = req.params;
     try {
@@ -150,5 +186,14 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
     } catch (error) {
         // gestion de l'erreur
         res.status(500).json({ error: 'Une erreur est survenue.' });
-    }
+    } finally {
+        await prisma.$disconnect();
+      }
 };
+
+
+
+
+
+
+
