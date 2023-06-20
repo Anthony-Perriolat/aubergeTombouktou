@@ -6,6 +6,7 @@ import permission from '../middleware/permission';
 
 const router = Router();
 
+router.get('/preview/:id', BookingCrlt.getAllBookingsPreview);
 router.get('/:id', authMiddleware, BookingCrlt.getBookingById);
 router.get('/myBookings', authMiddleware, BookingCrlt.getMyBookings);
 router.get('/', authMiddleware, permission, BookingCrlt.getAllBookings);

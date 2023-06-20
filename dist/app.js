@@ -11,7 +11,12 @@ const payments_1 = __importDefault(require("./routes/payments"));
 const categoriesArticle_1 = __importDefault(require("./routes/categoriesArticle"));
 const rooms_1 = __importDefault(require("./routes/rooms"));
 const articles_1 = __importDefault(require("./routes/articles"));
+const cors = require('cors');
 const app = (0, express_1.default)();
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 app.use(express_1.default.json());
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -25,7 +30,7 @@ app.use('/api/rooms', rooms_1.default);
 app.use('/api/articles', articles_1.default);
 app.use('/images', express_1.default.static(path_1.default.join(__dirname, 'images')));
 app.get('/api/', (req, res) => {
-    res.status(404).send("Bienvenue sur l'api de reservation destiné aux chambre d'hote et d'hotel");
+    res.status(200).send("Bienvenue sur l'api de reservation destiné aux chambre d'hote et d'hotel");
 });
 app.get('*', (req, res) => {
     res.status(404).send("Désolé, cette page n'existe pas!");

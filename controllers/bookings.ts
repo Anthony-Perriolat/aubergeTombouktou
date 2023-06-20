@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, query } from 'express';
 import { ValidateEmail } from '../lib/regex';
 import prisma from '../client';
 import { sendMailCreateBooking } from '../lib/senderMail';
 import Stripe from 'stripe';
+import moment, { now } from 'moment';
 
 const stripe = new Stripe(`${process.env.STRIPE_KEY_SECRET}`, {
     apiVersion: '2022-11-15',
@@ -33,7 +34,7 @@ export const getBookingById = async (req: Request, res: Response, next: NextFunc
         res.status(500).json({ error: 'Une erreur est survenue.' });
     } finally {
         await prisma.$disconnect();
-      }
+    }
 }
 
 export const getMyBookings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -45,7 +46,7 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
         res.status(500).json({ error: 'Une erreur est survenue.' });
     } finally {
         await prisma.$disconnect();
-      }
+    }
 }
 
 export const getAllBookings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -57,7 +58,29 @@ export const getAllBookings = async (req: Request, res: Response, next: NextFunc
         res.status(500).json({ error: 'Une erreur est survenue.' });
     } finally {
         await prisma.$disconnect();
-      }
+    }
+}
+export const getAllBookingsPreview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const now = new Date()
+
+    try {
+        const result = await prisma.booking.findMany({
+            where: {
+                roomId: Number(req.params.id),
+                dateCheckIn: { gte: now },
+            },
+            select: {
+                dateCheckIn: true,
+                dateCheckOut: true,
+              },
+        })
+        res.status(200).json(result);
+    } catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ message: 'Une erreur est survenue.' });
+    } finally {
+        await prisma.$disconnect();
+    }
 }
 interface createBookingData {
     email: string,
@@ -79,7 +102,7 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
             if (dateCheckInISO > dateCheckOutISO) {
                 res.status(400).json({ message: "DateCheckIn doit être inferieur à DateCheckOut" })
             }
-            const room = await prisma.room.findUnique({where:{id:dataToCreate.roomId}})
+            const room = await prisma.room.findUnique({ where: { id: dataToCreate.roomId } })
             if (dataToCreate.personNumber && room?.personNumberPerRoom && room.personNumberPerRoom < dataToCreate.personNumber) {
                 res.status(400).json({ message: "le nombre de personne doit être inferieur à la capacité de la chambre" })
             } else {
@@ -134,7 +157,7 @@ export const createBooking = async (req: Request, res: Response, next: NextFunct
             res.status(500).json({ error: 'Une erreur est survenue.' });
         } finally {
             await prisma.$disconnect();
-          }
+        }
     }
 }
 interface updateBookingData {
@@ -153,25 +176,25 @@ export const updateBooking = async (req: Request, res: Response, next: NextFunct
         res.status(400).json({ message: 'e-mail invalide' });
     } else {
         try {
-            const room = await prisma.room.findUnique({where:{id:dataToUpdate.roomId}})
+            const room = await prisma.room.findUnique({ where: { id: dataToUpdate.roomId } })
             if (dataToUpdate.personNumber && room?.personNumberPerRoom && room.personNumberPerRoom < dataToUpdate.personNumber) {
                 res.status(400).json({ message: "le nombre de personne doit être inferieur à la capacité de la chambre" })
             } else {
-                    await prisma.booking.updateMany({
-                        where: { id: id, userId: req.auth.userId, roomId: dataToUpdate.roomId },
-                        data: dataToUpdate,
-                    })
-                    const result = prisma.booking.findUnique({where:{id:id}})
-                    res.status(201).json(result);
+                await prisma.booking.updateMany({
+                    where: { id: id, userId: req.auth.userId, roomId: dataToUpdate.roomId },
+                    data: dataToUpdate,
+                })
+                const result = prisma.booking.findUnique({ where: { id: id } })
+                res.status(201).json(result);
             }
         } catch (error) {
             // gestion de l'erreur
             res.status(500).json({ error: 'Une erreur est survenue.' });
         } finally {
             await prisma.$disconnect();
-          }
+        }
     }
-    
+
 }
 // update with modify date
 // if (dataToUpdate.dateCheckIn && dataToUpdate.dateCheckOut && new Date(dataToUpdate.dateCheckIn).toISOString() > new Date(dataToUpdate.dateCheckOut).toISOString()) {
@@ -219,5 +242,5 @@ export const deleteBooking = async (req: Request, res: Response, next: NextFunct
         res.status(500).json({ error: 'Une erreur est survenue.' });
     } finally {
         await prisma.$disconnect();
-      }
+    }
 }

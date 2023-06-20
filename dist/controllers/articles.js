@@ -43,10 +43,14 @@ const getArticleById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.getArticleById = getArticleById;
 const getAllArticles = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { limit } = req.query;
+    const limitQuery = limit ? Number(limit) : undefined;
     try {
         const categorieIdQuery = req.query.categorieId;
         const where = categorieIdQuery ? { categorieId: Number(categorieIdQuery) } : {};
-        const result = yield client_1.default.article.findMany({ where });
+        let take = undefined;
+        limitQuery ? take = limitQuery : null;
+        const result = yield client_1.default.article.findMany({ where, take, include: { images: true }, });
         res.status(200).json(result);
     }
     catch (error) {

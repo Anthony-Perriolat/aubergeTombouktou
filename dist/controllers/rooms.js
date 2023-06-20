@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRoom = exports.deleteImageRoom = exports.updateRoom = exports.createRoom = exports.getAllRooms = exports.getRoomById = void 0;
 const fs_1 = __importDefault(require("fs"));
 const client_1 = __importDefault(require("../client"));
+const moment_1 = __importDefault(require("moment"));
 const getRoomById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     try {
@@ -35,7 +36,7 @@ const getRoomById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         // gestion de l'erreur
-        res.status(500).json({ error: 'Une erreur est survenue.' });
+        res.status(500).json({ message: 'Une erreur est survenue.' });
     }
     finally {
         yield client_1.default.$disconnect();
@@ -45,55 +46,80 @@ exports.getRoomById = getRoomById;
 const getAllRooms = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Récupérer les paramètres de la requête
-        const { price, bed, dateStart, dateEnd } = req.query;
+        const { price, bed, personNumberPerRoom, dateStart, dateEnd } = req.query;
         // Convertir les chaînes de requête en types appropriés
         const priceQuery = price ? Number(price) : undefined;
         const bedQuery = bed ? Number(bed) : undefined;
-        const dateStartQuery = dateStart ? new Date(dateStart) : undefined;
-        const dateEndQuery = dateEnd ? new Date(dateEnd) : undefined;
-        // Construire la requête pour obtenir les chambres réservées pour une plage de dates donnée
-        const bookedRoomsQuery = yield client_1.default.booking.findMany({
-            select: {
-                roomId: true,
-            },
-            where: {
-                AND: [
-                    {
-                        dateCheckIn: {
-                            lte: dateEndQuery,
-                        },
-                    },
-                    {
-                        dateCheckOut: {
-                            gte: dateStartQuery,
-                        },
-                    },
-                ],
-            },
-        });
-        // Obtenir la liste des identifiants des chambres réservées
-        const bookedRoomIds = bookedRoomsQuery.map((booking) => booking.roomId);
-        // Construire la requête pour obtenir toutes les chambres, sauf celles qui sont réservées
-        const availableRoomsQuery = yield client_1.default.room.findMany({
-            where: {
-                AND: [
-                    {
-                        NOT: {
-                            id: {
-                                in: bookedRoomIds,
+        const personNumberPerRoomQuery = personNumberPerRoom ? Number(personNumberPerRoom) : undefined;
+        const dateStartQuery = dateStart ? (0, moment_1.default)(String(dateStart), 'DD/MM/YYYY').toDate() : undefined;
+        const dateEndQuery = dateEnd ? (0, moment_1.default)(String(dateEnd), 'DD/MM/YYYY').toDate() : undefined;
+        if (priceQuery || bedQuery || (dateStartQuery && dateEndQuery)) {
+            // Construire la requête pour obtenir les chambres réservées pour une plage de dates donnée
+            const bookedRoomsQuery = yield client_1.default.booking.findMany({
+                select: {
+                    roomId: true,
+                },
+                where: {
+                    AND: [
+                        {
+                            dateCheckIn: {
+                                lte: dateEndQuery,
                             },
                         },
-                    },
-                ],
-                price: priceQuery,
-                bed: bedQuery,
-            },
-            include: {
-                ImageRoom: true,
-            },
-        });
-        // Renvoyer les chambres disponibles en réponse
-        res.status(200).json(availableRoomsQuery);
+                        {
+                            dateCheckOut: {
+                                gte: dateStartQuery,
+                            },
+                        },
+                    ],
+                },
+            });
+            // Obtenir la liste des identifiants des chambres réservées
+            const bookedRoomIds = bookedRoomsQuery.map((booking) => booking.roomId);
+            // Construire la requête pour obtenir toutes les chambres, sauf celles qui sont réservées
+            const availableRoomsQuery = yield client_1.default.room.findMany({
+                where: {
+                    AND: [
+                        {
+                            NOT: {
+                                id: {
+                                    in: bookedRoomIds,
+                                },
+                            },
+                        },
+                    ],
+                    price: priceQuery,
+                    bed: bedQuery,
+                    personNumberPerRoom: { gte: personNumberPerRoomQuery },
+                },
+                include: {
+                    ImageRoom: true,
+                },
+            });
+            // Renvoyer les chambres disponibles en réponse
+            res.status(200).json(availableRoomsQuery);
+        }
+        else if (personNumberPerRoomQuery) {
+            const availableRoomsQuery = yield client_1.default.room.findMany({
+                where: {
+                    personNumberPerRoom: { gte: personNumberPerRoomQuery },
+                },
+                include: {
+                    ImageRoom: true,
+                },
+            });
+            // Renvoyer les chambres disponibles en réponse
+            res.status(200).json(availableRoomsQuery);
+        }
+        else {
+            const roomsData = yield client_1.default.room.findMany({
+                include: {
+                    ImageRoom: true,
+                },
+            });
+            // Renvoyer les chambres disponibles en réponse
+            res.status(200).json(roomsData);
+        }
     }
     catch (error) {
         console.error(error);

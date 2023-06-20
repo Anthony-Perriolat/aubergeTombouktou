@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../client';
+import moment from 'moment';
 
 
 export const getRoomById = async (req: Request, res: Response, next: NextFunction) => {
@@ -22,7 +23,7 @@ export const getRoomById = async (req: Request, res: Response, next: NextFunctio
     }
   } catch (error) {
     // gestion de l'erreur
-    res.status(500).json({ error: 'Une erreur est survenue.' });
+    res.status(500).json({ message: 'Une erreur est survenue.' });
   } finally {
     await prisma.$disconnect();
   }
@@ -31,33 +32,34 @@ export const getRoomById = async (req: Request, res: Response, next: NextFunctio
 export const getAllRooms = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Récupérer les paramètres de la requête
-    const { price, bed, dateStart, dateEnd } = req.query;
-
+    const { price, bed, personNumberPerRoom, dateStart, dateEnd } = req.query;
+    
     // Convertir les chaînes de requête en types appropriés
     const priceQuery: number | undefined = price ? Number(price) : undefined;
     const bedQuery: number | undefined = bed ? Number(bed) : undefined;
-    const dateStartQuery: Date | undefined = dateStart ? new Date(dateStart as string) : undefined;
-    const dateEndQuery: Date | undefined = dateEnd ? new Date(dateEnd as string) : undefined;
-
-    // Construire la requête pour obtenir les chambres réservées pour une plage de dates donnée
-    const bookedRoomsQuery = await prisma.booking.findMany({
-      select: {
-        roomId: true,
-      },
-      where: {
-        AND: [
-          {
-            dateCheckIn: {
-              lte: dateEndQuery,
+    const personNumberPerRoomQuery: number | undefined = personNumberPerRoom ? Number(personNumberPerRoom) : undefined;
+    const dateStartQuery: Date | undefined = dateStart ? moment(String(dateStart), 'DD/MM/YYYY').toDate() : undefined;
+    const dateEndQuery: Date | undefined = dateEnd ? moment(String(dateEnd), 'DD/MM/YYYY').toDate() : undefined;
+    if (priceQuery || bedQuery || (dateStartQuery && dateEndQuery)) {
+      // Construire la requête pour obtenir les chambres réservées pour une plage de dates donnée
+      const bookedRoomsQuery = await prisma.booking.findMany({
+        select: {
+          roomId: true,
+        },
+        where: {
+          AND: [
+            {
+              dateCheckIn: {
+                lte: dateEndQuery,
+              },
             },
-          },
-          {
-            dateCheckOut: {
-              gte: dateStartQuery,
-            },
+            {
+              dateCheckOut: {
+                gte: dateStartQuery,
+              },
           },
         ],
-
+        
       },
     });
 
@@ -78,6 +80,7 @@ export const getAllRooms = async (req: Request, res: Response, next: NextFunctio
         ],
         price: priceQuery,
         bed: bedQuery,
+        personNumberPerRoom: { gte:personNumberPerRoomQuery},
       },
       include: {
         ImageRoom: true,
@@ -86,6 +89,30 @@ export const getAllRooms = async (req: Request, res: Response, next: NextFunctio
 
     // Renvoyer les chambres disponibles en réponse
     res.status(200).json(availableRoomsQuery);
+  } else if (personNumberPerRoomQuery) {
+    const availableRoomsQuery = await prisma.room.findMany({
+      where: {
+        personNumberPerRoom: { gte:personNumberPerRoomQuery},
+      },
+      include: {
+        ImageRoom: true,
+      },
+    });
+
+    // Renvoyer les chambres disponibles en réponse
+    res.status(200).json(availableRoomsQuery);
+  }
+  
+  else {
+    const roomsData = await prisma.room.findMany({
+      include: {
+        ImageRoom: true,
+      },
+    });
+
+    // Renvoyer les chambres disponibles en réponse
+    res.status(200).json(roomsData);
+  }
 
   } catch (error) {
     console.error(error);

@@ -19,6 +19,8 @@ model User {
   nationality String
   permission  String    @default("customer")
   password    String
+  resetPasswordToken String?
+  resetPasswordExpires DateTime?
   bookings    Booking[]
 }
 

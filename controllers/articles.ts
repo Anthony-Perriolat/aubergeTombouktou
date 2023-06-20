@@ -26,11 +26,15 @@ export const getArticleById = async (req: Request, res: Response, next: NextFunc
       }
 };
 export const getAllArticles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { limit } = req.query;
+    const limitQuery: number | undefined = limit ? Number(limit) : undefined;
+
     try {
         const categorieIdQuery = req.query.categorieId;
-        const where = categorieIdQuery ? { categorieId: Number(categorieIdQuery) } : {};
-    
-        const result = await prisma.article.findMany({ where });
+        const where: { categorieId?: number} = categorieIdQuery ? { categorieId: Number(categorieIdQuery) } : {};
+        let take = undefined
+        limitQuery ? take = limitQuery : null
+        const result = await prisma.article.findMany({ where, take,include: { images: true }, }, );
     
         res.status(200).json(result);
       } catch (error) {

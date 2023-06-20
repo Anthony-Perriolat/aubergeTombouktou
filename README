@@ -5,6 +5,7 @@ for create a schema use this link :
 https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
 
 for update schemas DB use this : npx prisma migrate dev --name xxxx
+npx prisma generate
 for fix a schema use this command line : prisma format
 
 

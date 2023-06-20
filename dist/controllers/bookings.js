@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteBooking = exports.updateBooking = exports.createBooking = exports.getAllBookings = exports.getMyBookings = exports.getBookingById = void 0;
+exports.deleteBooking = exports.updateBooking = exports.createBooking = exports.getAllBookingsPreview = exports.getAllBookings = exports.getMyBookings = exports.getBookingById = void 0;
 const regex_1 = require("../lib/regex");
 const client_1 = __importDefault(require("../client"));
 const stripe_1 = __importDefault(require("stripe"));
@@ -76,6 +76,30 @@ const getAllBookings = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.getAllBookings = getAllBookings;
+const getAllBookingsPreview = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const now = new Date();
+    try {
+        const result = yield client_1.default.booking.findMany({
+            where: {
+                roomId: Number(req.params.id),
+                dateCheckIn: { gte: now },
+            },
+            select: {
+                dateCheckIn: true,
+                dateCheckOut: true,
+            },
+        });
+        res.status(200).json(result);
+    }
+    catch (error) {
+        // gestion de l'erreur
+        res.status(500).json({ message: 'Une erreur est survenue.' });
+    }
+    finally {
+        yield client_1.default.$disconnect();
+    }
+});
+exports.getAllBookingsPreview = getAllBookingsPreview;
 const createBooking = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const dataToCreate = req.body.data;
     if (!(0, regex_1.ValidateEmail)(dataToCreate.email)) {

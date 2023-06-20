@@ -37,5 +37,7 @@ router.delete('/myUser', authMiddleware_1.authMiddleware, userCrlt.deleteMyUser)
 router.get('/', authMiddleware_1.authMiddleware, permission_1.default, userCrlt.getAllUsers);
 router.post('/login', userCrlt.login);
 router.post('/signUp', userCrlt.signUpUser);
+router.post('/forgotPassword', userCrlt.forgotPassword);
+router.post('/forgotPassword/:token', userCrlt.restPassword);
 router.put('/:id', authMiddleware_1.authMiddleware, userCrlt.updateUser);
 exports.default = router;

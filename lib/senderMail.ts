@@ -16,7 +16,12 @@ interface SendMailBookingData {
   duration: Number;
   price: Number;
   nbCustomer: Number;
-}
+} 
+interface sendMailForgotPassword {
+  nameUser: string;
+  email: string;
+  url:string;
+} 
 // create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
   host: "smtp.hostinger.com",
@@ -69,6 +74,19 @@ async function sendMailUpdateEmail(data: SendMailUserData) {
   });
 }
 
+async function sendMailForgotPassword(data: sendMailForgotPassword) {
+  // compile the template
+  const template = handlebars.compile(await fs.readFile('lib/templateMail/updatePassword.hbs', 'utf8'));
+  // generate the HTML content of the email using the template and data
+  const htmlContent = template({ nameUser: data.nameUser, email: data.email, url:data.url });
+  await transporter.sendMail({
+    from: process.env.MAIL_SENDER!, // sender address
+    to: data.email, // list of receivers
+    subject: "Modification de votre mot de passe pour l'auberge de Tombouktou", // Subject line
+    html: htmlContent // html body
+  });
+}
+
 async function sendMailCreateBooking(data: SendMailBookingData) {
   // compile the template
   const template = handlebars.compile(await fs.readFile('lib/templateMail/createBookingMail.hbs', 'utf8'));
@@ -102,4 +120,5 @@ export {
   sendMailUpdateEmail,
   sendMailCreateBooking,
   sendMailUpdateBooking,
+  sendMailForgotPassword,
 };

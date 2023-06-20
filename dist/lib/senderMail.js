@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendMailUpdateBooking = exports.sendMailCreateBooking = exports.sendMailUpdateEmail = exports.sendMailGoodbye = exports.sendMailWelcome = void 0;
+exports.sendMailForgotPassword = exports.sendMailUpdateBooking = exports.sendMailCreateBooking = exports.sendMailUpdateEmail = exports.sendMailGoodbye = exports.sendMailWelcome = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const handlebars_1 = __importDefault(require("handlebars"));
 const promises_1 = __importDefault(require("fs/promises"));
@@ -72,6 +72,21 @@ function sendMailUpdateEmail(data) {
     });
 }
 exports.sendMailUpdateEmail = sendMailUpdateEmail;
+function sendMailForgotPassword(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // compile the template
+        const template = handlebars_1.default.compile(yield promises_1.default.readFile('lib/templateMail/updatePassword.hbs', 'utf8'));
+        // generate the HTML content of the email using the template and data
+        const htmlContent = template({ nameUser: data.nameUser, email: data.email, url: data.url });
+        yield transporter.sendMail({
+            from: process.env.MAIL_SENDER,
+            to: data.email,
+            subject: "Modification de votre mot de passe pour l'auberge de Tombouktou",
+            html: htmlContent // html body
+        });
+    });
+}
+exports.sendMailForgotPassword = sendMailForgotPassword;
 function sendMailCreateBooking(data) {
     return __awaiter(this, void 0, void 0, function* () {
         // compile the template

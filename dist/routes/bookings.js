@@ -31,6 +31,7 @@ const BookingCrlt = __importStar(require("../controllers/bookings"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const permission_1 = __importDefault(require("../middleware/permission"));
 const router = (0, express_1.Router)();
+router.get('/preview/:id', BookingCrlt.getAllBookingsPreview);
 router.get('/:id', authMiddleware_1.authMiddleware, BookingCrlt.getBookingById);
 router.get('/myBookings', authMiddleware_1.authMiddleware, BookingCrlt.getMyBookings);
 router.get('/', authMiddleware_1.authMiddleware, permission_1.default, BookingCrlt.getAllBookings);

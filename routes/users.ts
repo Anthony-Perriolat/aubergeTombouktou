@@ -12,6 +12,8 @@
     router.get('/', authMiddleware, permission, userCrlt.getAllUsers);
     router.post('/login', userCrlt.login);
     router.post('/signUp', userCrlt.signUpUser);
+    router.post('/forgotPassword', userCrlt.forgotPassword);
+    router.post('/forgotPassword/:token', userCrlt.restPassword);
     router.put('/:id', authMiddleware, userCrlt.updateUser);
 
     export default router;
